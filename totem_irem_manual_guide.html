@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOTEM IREM 动静态分析手册化学习页</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0d1b30;
+      --panel: rgba(9, 20, 38, 0.82);
+      --panel-strong: rgba(10, 22, 43, 0.94);
+      --line: rgba(125, 173, 255, 0.18);
+      --line-strong: rgba(125, 173, 255, 0.36);
+      --text: #eef4ff;
+      --muted: #a3b7d6;
+      --soft: #7891b6;
+      --cyan: #5fd9ff;
+      --teal: #48f0c2;
+      --amber: #ffbf69;
+      --rose: #ff7f96;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      --radius: 22px;
+      --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+      --sans: "Bahnschrift", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at top left, rgba(95, 217, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(255, 191, 105, 0.12), transparent 24%),
+        linear-gradient(180deg, #06101d 0%, #08172a 35%, #07111f 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.22;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .layout {
+      width: min(1540px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 20px 0 48px;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(14, 28, 49, 0.92), rgba(8, 16, 28, 0.88));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+
+    .brand strong {
+      display: block;
+      color: #fff;
+      letter-spacing: 0.06em;
+      font-size: 18px;
+      margin-top: 8px;
+    }
+
+    .sidebar p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+      margin: 0 0 18px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+      margin: 22px 0;
+    }
+
+    .nav a {
+      display: block;
+      padding: 11px 14px;
+      border-radius: 14px;
+      color: var(--muted);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.025);
+      transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      font-size: 13px;
+    }
+
+    .nav a:hover {
+      color: #fff;
+      border-color: var(--line-strong);
+      transform: translateX(4px);
+    }
+
+    .quick {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .quick-card {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .quick-card strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .quick-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .content {
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      background: linear-gradient(180deg, rgba(13, 27, 48, 0.94), rgba(8, 18, 32, 0.9));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      overflow: hidden;
+      position: relative;
+      padding: 34px 34px 28px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -90px -110px auto;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(72, 240, 194, 0.25), transparent 68%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--cyan);
+      background: rgba(95, 217, 255, 0.08);
+      border: 1px solid rgba(95, 217, 255, 0.18);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
+      gap: 24px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 1.08;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.9;
+      max-width: 760px;
+      margin: 0;
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .metric {
+      padding: 16px 16px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .metric span {
+      display: block;
+      font-size: 12px;
+      color: var(--soft);
+      line-height: 1.6;
+    }
+
+    .hero-svg {
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: radial-gradient(circle at top left, rgba(95, 217, 255, 0.08), rgba(255, 255, 255, 0.02) 40%);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.03em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+      max-width: 720px;
+    }
+
+    .panel {
+      padding: 26px;
+    }
+
+    .tag-row,
+    .chapter-grid,
+    .summary-grid,
+    .artifact-grid,
+    .recipe-grid,
+    .gallery-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .chapter-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .chapter-card,
+    .summary-card,
+    .artifact-card,
+    .recipe,
+    .gallery-card,
+    .check-card,
+    .node-card,
+    .template-panel {
+      border-radius: 20px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .chapter-card {
+      padding: 18px;
+    }
+
+    .chapter-card strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .chapter-card span,
+    .chapter-card p {
+      display: block;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .ref {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--amber);
+      background: rgba(255, 191, 105, 0.09);
+      border: 1px solid rgba(255, 191, 105, 0.2);
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .summary-card {
+      padding: 18px 18px 16px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .summary-card p,
+    .summary-card ul,
+    .artifact-card p,
+    .node-card p,
+    .recipe p,
+    .gallery-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.82;
+    }
+
+    ul,
+    ol {
+      padding-left: 18px;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    li {
+      margin-bottom: 8px;
+      line-height: 1.75;
+    }
+
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .flow-step {
+      position: relative;
+      padding: 18px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      min-height: 158px;
+    }
+
+    .flow-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -10px;
+      width: 18px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+      transform: translateY(-50%);
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-step b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: rgba(95, 217, 255, 0.12);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .flow-step strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .flow-step span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .check-card {
+      padding: 18px;
+    }
+
+    .check-card h3,
+    .node-card h3,
+    .recipe h3,
+    .template-panel h3,
+    .gallery-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .check-card table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .check-card th,
+    .check-card td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: top;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .check-card th {
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .nodes {
+      display: grid;
+      gap: 16px;
+    }
+
+    .node-card {
+      padding: 20px;
+    }
+
+    .node-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .node-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--teal);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .node-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .node-block {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .node-block h4 {
+      margin: 0 0 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .node-block ul {
+      margin-top: 0;
+      padding-left: 17px;
+      font-size: 12px;
+    }
+
+    .artifact-grid,
+    .recipe-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .artifact-card,
+    .recipe,
+    .gallery-card {
+      padding: 18px;
+    }
+
+    .artifact-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-family: var(--mono);
+    }
+
+    .codebox {
+      position: relative;
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #06101b;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .copy-btn {
+      border: 1px solid rgba(95, 217, 255, 0.2);
+      background: rgba(95, 217, 255, 0.1);
+      color: var(--cyan);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(95, 217, 255, 0.18);
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #d8e8ff;
+      font-family: var(--mono);
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field-group {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .field-group h4 {
+      margin: 0 0 10px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    label:last-child {
+      margin-bottom: 0;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      background: rgba(5, 12, 23, 0.84);
+      color: #fff;
+      padding: 11px 12px;
+      font-size: 13px;
+      font-family: var(--mono);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 3px rgba(95, 217, 255, 0.08);
+    }
+
+    .template-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .template-tab {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .template-tab.active {
+      color: #fff;
+      border-color: rgba(95, 217, 255, 0.28);
+      background: rgba(95, 217, 255, 0.12);
+    }
+
+    .template-panel {
+      display: none;
+      overflow: hidden;
+    }
+
+    .template-panel.active {
+      display: block;
+    }
+
+    .recipe ol {
+      margin-top: 10px;
+      padding-left: 18px;
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gallery-card img {
+      width: 100%;
+      display: block;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #fff;
+    }
+
+    .gallery-card small {
+      display: block;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 6px;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--amber);
+      border-radius: 14px;
+      background: rgba(255, 191, 105, 0.08);
+      color: #ffe8bf;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .footer {
+      padding: 18px 24px;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.8;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .hero-grid,
+      .workbench,
+      .node-grid,
+      .chapter-grid,
+      .summary-grid,
+      .artifact-grid,
+      .recipe-grid,
+      .gallery-grid,
+      .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        width: min(100vw - 18px, 100%);
+        padding-top: 10px;
+      }
+
+      .hero,
+      .panel,
+      .sidebar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .hero-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        Manual Driven
+        <strong>TOTEM IREM 学习页</strong>
+      </div>
+      <p>本页只围绕附加手册《eetopcn_Totem.pdf》中的四个章节整理：Characterization and Modeling、Static and Dynamic Analysis、Package and Board Modeling、Signal EM Analysis。</p>
+      <nav class="nav">
+        <a href="#scope">手册范围</a>
+        <a href="#overview">总体流程</a>
+        <a href="#checklist">输入数据准备</a>
+        <a href="#nodes">逐节点原理</a>
+        <a href="#artifacts">关键文件与输出</a>
+        <a href="#workbench">配置模板工坊</a>
+        <a href="#recipes">命令执行配方</a>
+        <a href="#gallery">手册图示</a>
+      </nav>
+      <div class="quick">
+        <div class="quick-card">
+          <strong>先抓主线</strong>
+          <span>APLMMX 负责电学预表征，GDS2DB 负责几何/连通性建模，GSR/TCL 负责把模型、功耗、时序、封装一起驱动分析。</span>
+        </div>
+        <div class="quick-card">
+          <strong>静态 vs 动态</strong>
+          <span>静态核心是功耗分配 + 电阻网络；动态核心是波形驱动的瞬态电流 + RLC 网络。</span>
+        </div>
+        <div class="quick-card">
+          <strong>最容易出错</strong>
+          <span>顶层实例名错、probe 没进 testbench、DSPF/GDS 坐标不匹配、PLOC 不带 package 端口映射、GDS tracing 短路。</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="eyebrow">TOTEM IREM / Manual Flow</div>
+        <div class="hero-grid">
+          <div>
+            <h1>把 TOTEM IREM 的动静态分析，拆成用户能一步步照着跑的流程</h1>
+            <p>目标不是把章节摘要抄一遍，而是把手册里的“建模原理、输入数据、配置关键字、执行命令、产出文件、排错入口”连成一张学习路径图。你可以先看总体流程，再按节点准备数据，最后在模板工坊里生成自己的 `aplmmx.config`、`gds2db.config`、`GSR` 和 `TCL` 起步文件。</p>
+            <div class="hero-metrics">
+              <div class="metric">
+                <strong>4</strong>
+                <span>核心章节被串成一条学习路径</span>
+              </div>
+              <div class="metric">
+                <strong>10</strong>
+                <span>流程节点逐个解释原理与数据用途</span>
+              </div>
+              <div class="metric">
+                <strong>7</strong>
+                <span>可直接改名替换的配置/命令模板</span>
+              </div>
+              <div class="metric">
+                <strong>4</strong>
+                <span>手册截图用于对照理解原图</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-svg">
+            <svg viewBox="0 0 520 380" width="100%" height="100%" aria-label="TOTEM IREM overall flow">
+              <defs>
+                <linearGradient id="cyanLine" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stop-color="#5fd9ff" stop-opacity="0.9"></stop>
+                  <stop offset="100%" stop-color="#48f0c2" stop-opacity="0.8"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="18" y="20" width="484" height="340" rx="28" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)"></rect>
+              <rect x="38" y="54" width="118" height="62" rx="18" fill="rgba(95,217,255,0.12)" stroke="rgba(95,217,255,0.28)"></rect>
+              <text x="56" y="82" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">APLMMX</text>
+              <text x="56" y="104" fill="#a3b7d6" font-size="12" font-family="Cascadia Code, Consolas">electrical characterization</text>
+
+              <rect x="202" y="54" width="118" height="62" rx="18" fill="rgba(72,240,194,0.12)" stroke="rgba(72,240,194,0.3)"></rect>
+              <text x="220" y="82" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">GDS2DB</text>
+              <text x="220" y="104" fill="#a3b7d6" font-size="12" font-family="Cascadia Code, Consolas">physical model</text>
+
+              <rect x="366" y="54" width="118" height="62" rx="18" fill="rgba(255,191,105,0.12)" stroke="rgba(255,191,105,0.3)"></rect>
+              <text x="384" y="82" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">Package</text>
+              <text x="384" y="104" fill="#a3b7d6" font-size="12" font-family="Cascadia Code, Consolas">RLC / RLCK / PLOC</text>
+
+              <path d="M156 85 H 202" stroke="url(#cyanLine)" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M320 85 H 366" stroke="url(#cyanLine)" stroke-width="4" stroke-linecap="round"></path>
+
+              <rect x="64" y="180" width="156" height="70" rx="20" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)"></rect>
+              <text x="86" y="210" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">Static IR/EM</text>
+              <text x="86" y="232" fill="#a3b7d6" font-size="12" font-family="Cascadia Code, Consolas">pwrcalc → extraction → gridcheck</text>
+
+              <rect x="300" y="180" width="156" height="70" rx="20" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)"></rect>
+              <text x="322" y="210" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">Dynamic IR/EM</text>
+              <text x="322" y="232" fill="#a3b7d6" font-size="12" font-family="Cascadia Code, Consolas">spcurrent/cdev + RLC + state</text>
+
+              <path d="M260 116 V 162" stroke="url(#cyanLine)" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M260 162 C 260 175, 200 175, 142 180" stroke="url(#cyanLine)" stroke-width="4" fill="none"></path>
+              <path d="M260 162 C 260 175, 322 175, 378 180" stroke="url(#cyanLine)" stroke-width="4" fill="none"></path>
+
+              <rect x="144" y="286" width="228" height="48" rx="18" fill="rgba(255,127,150,0.12)" stroke="rgba(255,127,150,0.26)"></rect>
+              <text x="182" y="316" fill="#ffffff" font-size="18" font-family="Bahnschrift, Segoe UI">Signal EM Extension</text>
+              <path d="M142 250 C 150 275, 184 284, 220 286" stroke="rgba(255,127,150,0.6)" stroke-width="3" fill="none"></path>
+              <path d="M378 250 C 368 275, 338 284, 300 286" stroke="rgba(255,127,150,0.6)" stroke-width="3" fill="none"></path>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="scope" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>手册范围与本页边界</h2>
+          </div>
+          <p>页码统一对应 `eetopcn_Totem.pdf` 的书签页码。本页不试图覆盖 Appendix 的全部关键字词典，只抓与 IREM 动静态分析直接相关的主线。</p>
+        </div>
+        <div class="chapter-grid">
+          <div class="chapter-card">
+            <span class="ref">Chapter 3 · p.63-187</span>
+            <strong>Characterization and Modeling</strong>
+            <p>重点看 APLMMX 电学建模、TSR 集成流、APLMMX 必要关键字、`aplmmx -gds/-s/-n`、GDS2DB 必需配置段、GDS tracing 调试。</p>
+          </div>
+          <div class="chapter-card">
+            <span class="ref">Chapter 4 · p.188-214</span>
+            <strong>Static and Dynamic Analysis</strong>
+            <p>重点看 `perform pwrcalc`、`perform extraction`、`perform gridcheck`、Static GSR/TCL、Dynamic GSR/TCL、Power EM 极限与温度设置。</p>
+          </div>
+          <div class="chapter-card">
+            <span class="ref">Chapter 7 · p.271-282</span>
+            <strong>Package and Board Modeling</strong>
+            <p>重点看简单 RLC、分布式 RLCK 子电路、`REDHAWK_PKG` 约束、PLOC 映射规则、`compile_pkg` 的输入/输出。</p>
+          </div>
+          <div class="chapter-card">
+            <span class="ref">Chapter 11 · p.366-390</span>
+            <strong>Signal EM Analysis</strong>
+            <p>重点看晶体管级 Signal EM 的三步预表征、`aplmmx -sig -s/-n`、`perform analysis -signalEM`、cell-level Signal EM 与结果报告。</p>
+          </div>
+        </div>
+        <div class="note">如果你是第一次接触 TOTEM IREM，建议先把 Chapter 3 和 Chapter 4 当作主干，再把 Chapter 7 当作动态分析精度增强模块，把 Chapter 11 当作“功率 IR/EM 流跑通后”的扩展专项。</div>
+      </section>
+
+      <section id="overview" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>总体流程图</h2>
+          </div>
+          <p>从用户视角，真正需要掌握的是：先确认分析模式，再分别准备电学模型、物理模型和封装模型，最后让 GSR/TCL 把它们调度起来。</p>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <strong>静态 IREM 的本质</strong>
+            <p>静态分析并不追踪真实时域波形，而是把功耗/电流以平均值或区域/层次分配方式压到 P/G 网络上，再结合提取后的电阻网络求 IR drop，并顺手做静态 Power EM。</p>
+          </div>
+          <div class="summary-card">
+            <strong>动态 IREM 的本质</strong>
+            <p>动态分析先通过 APLMMX + Spice 把器件端口电流变成 `spcurrent/cdev`，再在提取出的 RLC 网络上跑瞬态，得到真实的动态压降与动态 EM。</p>
+          </div>
+          <div class="summary-card">
+            <strong>Signal EM 的本质</strong>
+            <p>Signal EM 把“谁在驱动哪根信号网、这根网的瞬态/估计电流多大、线宽与 via 规则允许多大电流密度”组合起来，检查信号线而不是 P/G 网。</p>
+          </div>
+        </div>
+        <div class="flow-strip">
+          <div class="flow-step">
+            <b>01</b>
+            <strong>选模式</strong>
+            <span>先决定是做静态、动态、Power EM 还是 Signal EM。这个决定直接影响你到底需要平均功耗、瞬态波形还是信号网 RC。</span>
+          </div>
+          <div class="flow-step">
+            <b>02</b>
+            <strong>做电学预表征</strong>
+            <span>APLMMX 读取网表、模型库、testbench、波形，生成 probe、`spcurrent`、`cdev`、`gdsmmx`。</span>
+          </div>
+          <div class="flow-step">
+            <b>03</b>
+            <strong>做几何建模</strong>
+            <span>GDS2DB 读取 GDS、layer map、top cell、net tracing 信息，构建几何与连通性。</span>
+          </div>
+          <div class="flow-step">
+            <b>04</b>
+            <strong>接入封装</strong>
+            <span>对动态压降或更真实的电源网络，继续叠加 pad / wirebond / package 的 RLC 或 RLCK 子电路。</span>
+          </div>
+          <div class="flow-step">
+            <b>05</b>
+            <strong>运行分析</strong>
+            <span>`pwrcalc → extraction → gridcheck → analysis`；Power EM 和 Signal EM 则在各自结果上继续检查。</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="checklist" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>输入数据准备清单</h2>
+          </div>
+          <p>这一节回答三个问题：要准备什么、为什么要准备、它会被哪一个节点消费。用户最容易在这一层把“文件存在”误当成“格式可用”。</p>
+        </div>
+        <div class="check-grid">
+          <div class="check-card">
+            <h3>电学输入</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件 / 数据</th>
+                  <th>被谁用</th>
+                  <th>用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>`SPICE_NETLIST` / `LAYOUT_NETLIST` / `DSPF_NETLIST`</td>
+                  <td>APLMMX / Signal EM</td>
+                  <td>识别器件、端口、层次名和 RC 坐标，建立器件到物理位置的映射。Chapter 3 p.71-73, p.367-376。</td>
+                </tr>
+                <tr>
+                  <td>`DEVICE_MODEL_LIBRARY`</td>
+                  <td>APLMMX / Signal EM</td>
+                  <td>给器件类型与工艺角，支撑 drive strength、Idsat、Spice 预表征。Chapter 3 p.70-73, p.374-380。</td>
+                </tr>
+                <tr>
+                  <td>`TOP_CELL` / `TOP_XCELL_NAME`</td>
+                  <td>APLMMX</td>
+                  <td>前者定义分析顶层 subckt，后者决定 probe 在 testbench 里的层次前缀。Chapter 3 p.73。</td>
+                </tr>
+                <tr>
+                  <td>`TEST_BENCH_FILE`</td>
+                  <td>动态 IREM / Signal EM</td>
+                  <td>提供激励与仿真环境。Signal EM 明确要求单独指定，不能只藏在 include 里。Chapter 11 p.374-381。</td>
+                </tr>
+                <tr>
+                  <td>`SIM_OUTPUT_FILE`</td>
+                  <td>APLMMX `-n` / `-sig -n`</td>
+                  <td>把 Spice 波形导回 APLMMX，生成 `spcurrent/cdev` 或 signal EM 电流模型。Chapter 3 p.64-65, Chapter 11 p.374-381。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="check-card">
+            <h3>物理与网络输入</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件 / 数据</th>
+                  <th>被谁用</th>
+                  <th>用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>`GDS_FILE` + `GDS_MAP_FILE`</td>
+                  <td>GDS2DB / Signal EM</td>
+                  <td>构建金属、via、device pin snapping 和 net tracing；layer map 决定 GDS 层号怎样翻译成工艺层。Chapter 3 p.137-148。</td>
+                </tr>
+                <tr>
+                  <td>`TOP_CELL` / `TOP_CELLS`</td>
+                  <td>GDS2DB</td>
+                  <td>告诉 GDS2DB 从哪一个几何层次开始抽取。Chapter 3 p.140。</td>
+                </tr>
+                <tr>
+                  <td>`VDD_NETS` / `GND_NETS`</td>
+                  <td>GDS2DB / GSR / EM</td>
+                  <td>一方面定义电源域电压，另一方面给 GDS tracing 指定要跟踪的电源网名或坐标。Chapter 3 p.146-148, Chapter 4 p.197-210。</td>
+                </tr>
+                <tr>
+                  <td>`TECH_FILE`</td>
+                  <td>Static / Dynamic / EM / Signal EM</td>
+                  <td>提供金属厚度、电阻、电容、EM limit、温度基准。Chapter 4 p.197, p.208-210, Chapter 11 p.370-389。</td>
+                </tr>
+                <tr>
+                  <td>`USE_TOP_LEVEL_TEXT_ONLY 1` 等 tracing 调试设置</td>
+                  <td>GDS2DB</td>
+                  <td>短路、坐标、label 不可靠时的第一批排错抓手。Chapter 3 p.185-187。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="check-card">
+            <h3>分析控制输入</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件 / 数据</th>
+                  <th>被谁用</th>
+                  <th>用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>`BLOCK_POWER_FOR_SCALING` / `BLOCK_POWER_ASSIGNMENT`</td>
+                  <td>静态 IREM</td>
+                  <td>决定静态电流如何分配到电源网络；没有真实动态波形时，这就是电流注入的来源。Chapter 4 p.197-201。</td>
+                </tr>
+                <tr>
+                  <td>`APL_FILES`</td>
+                  <td>动态 IREM</td>
+                  <td>把 `spcurrent` 与 `cdev` 导入 Totem；这是动态分析的核心电流源模型。Chapter 4 p.202-204。</td>
+                </tr>
+                <tr>
+                  <td>`USER_STA_FILE`</td>
+                  <td>动态 IREM</td>
+                  <td>给实例 timing window。Chapter 4 p.202-203。</td>
+                </tr>
+                <tr>
+                  <td>`GSC_FILE`</td>
+                  <td>动态 IREM / Signal EM</td>
+                  <td>指定 switching state，决定分析用哪一个状态或多状态窗口。Chapter 4 p.202-203, Chapter 11 p.380-381。</td>
+                </tr>
+                <tr>
+                  <td>`DYNAMIC_SIMULATION_TIME` / `DYNAMIC_TIME_STEP`</td>
+                  <td>动态 IREM / Signal EM</td>
+                  <td>控制瞬态仿真的总时长与步进；`pwrcalc` 还会给出推荐的动态分析时间。Chapter 4 p.189, p.202-203, Chapter 11 p.380。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="check-card">
+            <h3>封装与扩展输入</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件 / 数据</th>
+                  <th>被谁用</th>
+                  <th>用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>`.ploc`</td>
+                  <td>动态 IREM / Package</td>
+                  <td>把 die pad 位置和 package 端口名连起来；有 package subckt 时格式必须带 domain 和 port name。Chapter 7 p.278。</td>
+                </tr>
+                <tr>
+                  <td>simple pad/wirebond/package RLC</td>
+                  <td>动态 IREM</td>
+                  <td>快速近似封装影响；静态通常只要 R，动态必须补 L/C。Chapter 4 p.195-196, Chapter 7 p.272-273。</td>
+                </tr>
+                <tr>
+                  <td>`REDHAWK_PKG` SPICE subckt</td>
+                  <td>动态 IREM / Package</td>
+                  <td>更真实的 RLCK 包装模型；子电路名必须是 `REDHAWK_PKG`。Chapter 7 p.274-275。</td>
+                </tr>
+                <tr>
+                  <td>`compile_pkg` 输入集</td>
+                  <td>Package Compiler</td>
+                  <td>包模型、PLOC、GSR、电压文件、变换规则等，用于自动匹配 die/package pin 并生成 wrapped model。Chapter 7 p.279-281。</td>
+                </tr>
+                <tr>
+                  <td>`EM_NET_INFO`、slew/toggle、DEF/DSPF`</td>
+                  <td>Signal EM</td>
+                  <td>给信号网切换频率、输入过渡时间、负载、电容与时序信息。Chapter 11 p.370-389。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="nodes" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>逐节点解释：原理、输入、用途、命令</h2>
+          </div>
+          <p>下面把 IREM 分析拆成 10 个节点。每个节点都回答同一组问题：它在解决什么物理问题、你要交给它什么数据、这些数据被拿去做什么、跑完后应该得到什么。</p>
+        </div>
+        <div class="nodes">
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 0 · 选择分析模式</div>
+              <span class="ref">Chapter 4 p.188, Chapter 11 p.370-381</span>
+            </div>
+            <h3>先判断你要的是静态平均压降，还是动态瞬态压降，还是信号线 EM</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>静态把功耗转成平均注流，动态把真实波形转成瞬态注流，Signal EM 则关心信号线与器件驱动电流是否超过线宽/过孔 EM 极限。</p>
+              </div>
+              <div class="node-block">
+                <h4>要准备的数据</h4>
+                <ul>
+                  <li>静态：功耗分配、GDS/tech/ploc。</li>
+                  <li>动态：额外要 `spcurrent/cdev`、state、STA、RLC package。</li>
+                  <li>Signal EM：额外要 signal RC DSPF、slew/toggle、信号网 tracing 数据。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>这些数据用来干什么</h4>
+                <ul>
+                  <li>决定 `perform analysis -static` 还是 `-vcd` 还是 `-signalEM`。</li>
+                  <li>决定是否必须先跑 APLMMX 波形预表征。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>起步命令</h4>
+                <pre>setup analysis_mode signalEM
+import gsr &lt;file&gt;
+setup design</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 1 · APLMMX 电学预表征</div>
+              <span class="ref">Chapter 3 p.64-75</span>
+            </div>
+            <h3>APLMMX 把“网表里的器件”变成 Totem 能使用的电流/器件模型</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>APLMMX 先理解器件层次和端口，再生成 probe 或直接根据尺寸/Idsat 建模。动态流里，APLMMX 是真实波形和 Totem 模型之间的桥。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>`TOP_CELL`、`TOP_XCELL_NAME`</li>
+                  <li>`SPICE_NETLIST` / `LAYOUT_NETLIST` / `DSPF_NETLIST`</li>
+                  <li>`DEVICE_MODEL_LIBRARY`</li>
+                  <li>`VDD_PIN_NAME`、`GND_PIN_NAME`、`VDD`</li>
+                  <li>`SPICE_SIMULATOR`、`TEST_BENCH_FILE`、`SIM_OUTPUT_FILE`</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>识别器件类型、名字映射、power/ground pin。</li>
+                  <li>给 probe 找到 testbench 里的层次前缀。</li>
+                  <li>把 `.fsdb/.raw/.tr0` 等波形回灌为 `spcurrent/cdev`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>关键命令</h4>
+                <pre>aplmmx -gds aplmmx.config
+aplmmx -s aplmmx.config
+aplmmx -n aplmmx.config</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 2 · 静态 vs 动态 Characterization 细分</div>
+              <span class="ref">Chapter 3 p.64-67, p.128-133</span>
+            </div>
+            <h3>静态更像“估算+分配”，动态更像“实测+回灌”</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>静态路径</h4>
+                <ul>
+                  <li>`aplmmx -gds` 直接生成静态建模所需输出。</li>
+                  <li>如果没有完整功耗，可用 `CHARACTERIZE_IDSAT 1` 估算器件 drive strength 与 block power 模板。</li>
+                  <li>可生成 `adsRpt/&lt;design&gt;.bpa_file` 辅助静态 `BLOCK_POWER_ASSIGNMENT`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>动态路径</h4>
+                <ul>
+                  <li>先 `aplmmx -s` 生成 `<cell>.aplmmx` probe 文件。</li>
+                  <li>把 probe 插进 testbench 跑 Spice。</li>
+                  <li>再 `aplmmx -n` 生成 `<cell>.spcurrent`、`<cell>.cdev`、`<cell>.gdsmmx`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>常见关键字</h4>
+                <ul>
+                  <li>`AUTO_SPICE_FINGER_SUPPORT 1`：自动处理 finger。</li>
+                  <li>`PROBE_NO_PAR 1`：仿真器不支持参数化 probe 时使用。</li>
+                  <li>`PROBE_MAP`：波形变量名与 probe 名不一致时修正映射。</li>
+                  <li>`DEVICE_CURRENT_FILE`：支持 DCOP 驱动的静态分析。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>你应该拿到的输出</h4>
+                <ul>
+                  <li>`*.aplmmx`：probe 列表。</li>
+                  <li>`*.spcurrent`：器件端口电流模型。</li>
+                  <li>`*.cdev`：器件电学模型。</li>
+                  <li>`*.gdsmmx`：器件位置/类型/相对驱动能力。</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 3 · GDS2DB 物理建模</div>
+              <span class="ref">Chapter 3 p.137-148, p.185-187</span>
+            </div>
+            <h3>GDS2DB 负责把版图、层映射与 net tracing 变成可提取的物理网络</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>Totem 要在几何世界里知道每一根电源线、每个 via、每个器件 pin 到底连到了什么。GDS2DB 做的就是把 GDS + layer map 变成可计算的物理数据库。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>`GDS_FILE`</li>
+                  <li>`GDS_MAP_FILE`</li>
+                  <li>`TOP_CELL` 或 `TOP_CELLS`</li>
+                  <li>`VDD_NETS` / `GND_NETS` tracing 定义</li>
+                  <li>`NATIVE_GDS_SUPPORT` + GSR 的 `GDSII_FILE`</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>把 GDS 层号映射成工艺层名。</li>
+                  <li>从 text label 或坐标开始 tracing 电源网。</li>
+                  <li>创建器件 pin snapping 与金属/via 连通性。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>调试抓手</h4>
+                <ul>
+                  <li>`USE_TOP_LEVEL_TEXT_ONLY 1` 避免低层 label 误连。</li>
+                  <li>坐标 tracing 时用 `@ <layer:datatype> <x> <y>`。</li>
+                  <li>layer map 最好带 datatype，避免假短路。</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 4 · Package / Board 建模</div>
+              <span class="ref">Chapter 4 p.195-196, Chapter 7 p.271-281</span>
+            </div>
+            <h3>动态压降里，封装不是修饰项，而是电源路径的一部分</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>die pad 之外还有 pad wire、wirebond、package substrate、board。封装阻抗越大，动态噪声越容易被放大。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>简单模型：pad / wirebond / package 的 RLC。</li>
+                  <li>复杂模型：`REDHAWK_PKG` 子电路。</li>
+                  <li>`.ploc` 文件：pad 坐标 + domain + package 端口名。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>简单模型用 `setup pad/wirebond/package` 直接注入等效参数。</li>
+                  <li>复杂模型用 `.ploc` 把 die pad 和 package port 对接。</li>
+                  <li>`compile_pkg` 则负责 pin 匹配、passivity 检查、wrapped model 生成。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>关键命令</h4>
+                <pre>setup pad -power -r 0.01 -c 0.5
+setup wirebond -power -r 0.245 -l 1420 -c 5
+setup package -r 0.001 -l 10 -c 10
+
+compile_pkg -m pkg.sp -p die.ploc -vg demo.gsr -op die_out.ploc -om redhawk_pkg.sp</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 5 · Power Calculation</div>
+              <span class="ref">Chapter 4 p.188-191</span>
+            </div>
+            <h3>`perform pwrcalc` 先决定“电流该从哪里注进去、注多少”</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>无论静态还是动态，Totem 都要先理解功耗分布。`pwrcalc` 会统计平均周期功耗并给出图形化分布与报告。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>设计已经成功导入。</li>
+                  <li>GSR 中的电压域、频率、功耗相关关键字。</li>
+                  <li>必要时额外有 LIB/STA/CLOCK_ROOTS/FREQUENCY。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>产出有什么用</h4>
+                <ul>
+                  <li>得出功耗热区和总功耗分布。</li>
+                  <li>推荐 `DYNAMIC_SIMULATION_TIME`。</li>
+                  <li>给静态电流分配或动态仿真窗口提供依据。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>命令</h4>
+                <pre>perform pwrcalc
+import power &lt;Power_Dir_Name&gt;</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 6 · Extraction 与 Gridcheck</div>
+              <span class="ref">Chapter 4 p.191-195</span>
+            </div>
+            <h3>这一节点把“有图有电流”变成“真的可求解的网络”</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>Static 主要要电阻网络；Dynamic 还要电感和电容。抽取完成后，`gridcheck` 先快速指出最弱的电源/地路径。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>GDS2DB 物理数据库已经可用。</li>
+                  <li>电源域、ground 域命名清晰。</li>
+                  <li>动态流需抽 VDD 与 VSS 两边，且加 `-l -c`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>提取 R 或 RLC。</li>
+                  <li>识别 floating pin、未驱动 net、缺失连接。</li>
+                  <li>`gridcheck` 把最弱实例排出来，适合早期弱网定位。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>命令</h4>
+                <pre>perform extraction -power -ground
+perform extraction -power -ground -l -c
+perform gridcheck
+perform gridcheck -o grid.rpt -limit 200</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 7 · Static IREM 分析</div>
+              <span class="ref">Chapter 4 p.196-201</span>
+            </div>
+            <h3>静态分析的关键不是波形，而是“你怎样把功耗分配进网络”</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>静态 IR 会把功耗或地电流分到电源网节点，然后在电阻网络上解压降。适合早期 floorplan、block 级或平均场景。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>Static GSR：`TECH_FILE`、`PAD_FILES`、`GDSII_FILE`、`VDD_NETS`、`GND_NETS`。</li>
+                  <li>`BLOCK_POWER_FOR_SCALING` 或 `BLOCK_POWER_ASSIGNMENT`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>`BLOCK_POWER_FOR_SCALING`：按 block 总功耗缩放。</li>
+                  <li>`BLOCK_POWER_ASSIGNMENT`：对 region / hierarchy / MMX pin 精细分配。</li>
+                  <li>`CHARACTERIZE_IDSAT 1` 可在功耗不全时生成辅助模板。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>命令</h4>
+                <pre>import gsr user_data/RAM256.gsr
+setup design
+perform pwrcalc
+perform extraction -power -ground
+perform gridcheck
+perform analysis -static
+totem2 -f static.tcl</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 8 · Dynamic IREM 分析</div>
+              <span class="ref">Chapter 4 p.202-205</span>
+            </div>
+            <h3>动态分析要把“时序状态 + 瞬态电流 + 封装 RLC”放到同一次求解里</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>动态 IREM 不是简单把 static 功耗换成 time-domain，而是需要真实或近真实的器件电流波形、状态窗口和封装网络共同参与求解。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>`APL_FILES`：`spcurrent` + `cdev`</li>
+                  <li>`USER_STA_FILE`</li>
+                  <li>`GSC_FILE`</li>
+                  <li>`DYNAMIC_SIMULATION_TIME`、`DYNAMIC_TIME_STEP`</li>
+                  <li>必要的 pad/wirebond/package 参数</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>STA 限定 timing window。</li>
+                  <li>GSC 指定具体 switching state。</li>
+                  <li>RLC package 决定芯片外部供电路径阻抗。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>命令</h4>
+                <pre>import gsr user_data/RAM256.gsr
+setup design
+perform pwrcalc
+perform extraction -power -ground
+setup pad -power -r 0.0 -c 0.0 -ground -r 0.0 -c 0.0
+setup wirebond -power -r 0.002 -c 30.0 -l 250.0 -ground -r 0.002 -c 30.0 -l 250.0
+setup package -r 0.0016 -c 5.0 -l 25.0
+perform gridcheck
+perform analysis -vcd</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 9 · Power EM 设置与检查</div>
+              <span class="ref">Chapter 4 p.207-214</span>
+            </div>
+            <h3>EM 检查默认跟在 static/dynamic 后面，但精度取决于 limit 与温度设置</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>原理</h4>
+                <p>静态 EM 基于平均电流密度，动态 EM 默认看 peak，也可以切换到 AVG/RMS。Totem 把实际电流密度与 tech/EM tech 文件的限制值做比较。</p>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>`TECH_FILE` 里的 metal/via EM limit。</li>
+                  <li>可选 `EM_TECH_PEAK`、`EM_TECH_RMS`、`EM_TECH_AVG`。</li>
+                  <li>`TEMPERATURE_EM` 或 `TEMPERATURES_EM`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>数据用途</h4>
+                <ul>
+                  <li>决定按 wire width、via cut 数、温度修正后的限值。</li>
+                  <li>控制 dynamic EM 用 peak 还是 avg/rms。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>命令</h4>
+                <pre>perform emcheck
+perform emcheck -mode [AVG | RMS | PEAK | all]
+gsr set EM_MODE [rms | avg | peak]</pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-top">
+              <div class="node-badge">Node 10 · Signal EM 扩展</div>
+              <span class="ref">Chapter 11 p.367-390</span>
+            </div>
+            <h3>Signal EM 可以从同一套 APLMMX 思路出发，但追踪对象从 P/G 变成信号网</h3>
+            <div class="node-grid">
+              <div class="node-block">
+                <h4>晶体管级流程</h4>
+                <ul>
+                  <li>`aplmmx -sig -s`：生成信号相关 probe。</li>
+                  <li>Spice 跑含 RC 的 signal net 波形。</li>
+                  <li>`aplmmx -sig -n`：回灌波形并生成 signal EM 模型。</li>
+                  <li>`perform analysis -signalEM`：检查信号线 Iavg/Irms/Ipeak 与 EM 违规。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>必须准备</h4>
+                <ul>
+                  <li>GDS、GDS map、带坐标的 DSPF。</li>
+                  <li>testbench、Spice model、`SIM_OUTPUT_FILE`。</li>
+                  <li>`EM_NET_INFO`、`INPUT_TRANSITION`、slew/toggle 信息。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>cell-level Signal EM</h4>
+                <ul>
+                  <li>更接近静态流程：DEF + DSPF + timing + toggle + tech。</li>
+                  <li>典型命令：`setup analysis_mode signalEM` → `perform pwrcalc` → `perform extraction -signal` → `perform analysis -signalEM`。</li>
+                </ul>
+              </div>
+              <div class="node-block">
+                <h4>最重要提醒</h4>
+                <ul>
+                  <li>Signal EM 设计必须 short free。</li>
+                  <li>`TEST_BENCH_FILE` 需要单独指定。</li>
+                  <li>若仿真器不支持参数化 probe，就设 `PROBE_NO_PAR 1`。</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="artifacts" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>关键文件与输出物</h2>
+          </div>
+          <p>学会 TOTEM IREM 的一个捷径，是先搞清楚每个文件到底扮演什么角色。下面按“你会看到什么产物”来倒推流程。</p>
+        </div>
+        <div class="artifact-grid">
+          <div class="artifact-card">
+            <strong>&lt;cell&gt;.aplmmx</strong>
+            <p>APLMMX 生成的 probe 列表。动态 power 或 signal EM 做外部 Spice 仿真时，要把它 include 到 testbench 中。没有它，后面的 `-n` 就没有可导回的器件电流。</p>
+            <span class="ref">Chapter 3 p.64-65, Chapter 11 p.367-381</span>
+          </div>
+          <div class="artifact-card">
+            <strong>&lt;cell&gt;.spcurrent / &lt;cell&gt;.cdev</strong>
+            <p>动态 IREM 的核心电学输入。`spcurrent` 保存器件端口电流模型，`cdev` 保存器件电学模型；两者一起通过 GSR 的 `APL_FILES` 导回 Totem。</p>
+            <span class="ref">Chapter 3 p.64-65, Chapter 4 p.202-204</span>
+          </div>
+          <div class="artifact-card">
+            <strong>&lt;cell&gt;.gdsmmx</strong>
+            <p>把器件位置、类型、相对驱动信息和版图建模关联起来。你可以把它理解为“器件世界”和“几何世界”的桥接文件。</p>
+            <span class="ref">Chapter 3 p.64-65</span>
+          </div>
+          <div class="artifact-card">
+            <strong>gds2db.config / GDSII_FILE</strong>
+            <p>`gds2db.config` 描述 GDS 抽取；GSR 的 `GDSII_FILE` 则告诉 Totem 在运行时用哪个 config 和什么视图模式导入物理模型。</p>
+            <span class="ref">Chapter 3 p.137-148</span>
+          </div>
+          <div class="artifact-card">
+            <strong>`.ploc`</strong>
+            <p>简单时它只定义 die pad 坐标和 P/G 类型；有 package subckt 时，它还必须承担“die pad 名 ↔ package port 名”的映射职责。</p>
+            <span class="ref">Chapter 4 p.197, Chapter 7 p.278</span>
+          </div>
+          <div class="artifact-card">
+            <strong>GSR / TCL</strong>
+            <p>GSR 是“你要分析什么设计、哪些模型、哪些域、哪些温度、哪些时序文件”；TCL 是“按什么顺序真正执行这些动作”。</p>
+            <span class="ref">Chapter 4 p.196-204, Chapter 11 p.380-389</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="workbench" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>配置模板工坊</h2>
+          </div>
+          <p>填入项目名字和路径后，下面的模板会实时改写。它们是“手册示例的最小可运行骨架”，不是全量关键字词典。</p>
+        </div>
+
+        <div class="workbench">
+          <div class="form-grid">
+            <div class="field-group">
+              <h4>设计标识</h4>
+              <label>Design Name
+                <input id="designName" value="demo_core">
+              </label>
+              <label>TOP_CELL
+                <input id="topCell" value="demo_core">
+              </label>
+              <label>TOP_XCELL_NAME
+                <input id="topXcell" value="Xtop">
+              </label>
+            </div>
+
+            <div class="field-group">
+              <h4>域与电压</h4>
+              <label>VDD Pin
+                <input id="vddPin" value="VDD">
+              </label>
+              <label>GND Pin
+                <input id="gndPin" value="VSS">
+              </label>
+              <label>VDD Voltage
+                <input id="vddVolt" value="1.1">
+              </label>
+              <label>Frequency
+                <input id="freq" value="500e6">
+              </label>
+            </div>
+
+            <div class="field-group">
+              <h4>网表与波形</h4>
+              <label>SPICE_NETLIST
+                <input id="spiceNetlist" value="./user_data/demo_core.sp">
+              </label>
+              <label>LAYOUT_NETLIST
+                <input id="layoutNetlist" value="./user_data/demo_core_layout.sp">
+              </label>
+              <label>DSPF_NETLIST
+                <input id="dspfNetlist" value="./user_data/demo_core.dspf">
+              </label>
+              <label>DSPF_MAP
+                <input id="dspfMap" value="./user_data/demo_core.dspf.map">
+              </label>
+              <label>SIM_OUTPUT_FILE
+                <input id="simOutput" value="./user_data/top.fsdb">
+              </label>
+            </div>
+
+            <div class="field-group">
+              <h4>版图与工艺</h4>
+              <label>GDS_FILE
+                <input id="gdsFile" value="./user_data/demo_core.gds">
+              </label>
+              <label>GDS_MAP_FILE
+                <input id="gdsMapFile" value="./user_data/gds_layer.map">
+              </label>
+              <label>TECH_FILE
+                <input id="techFile" value="./user_data/demo_core.tech">
+              </label>
+              <label>PLOC
+                <input id="plocFile" value="./user_data/demo_core.ploc">
+              </label>
+            </div>
+
+            <div class="field-group">
+              <h4>仿真控制</h4>
+              <label>TEST_BENCH_FILE
+                <input id="testbench" value="./user_data/dut.sp">
+              </label>
+              <label>DEVICE_MODEL_LIBRARY
+                <input id="modelLib" value="./user_data/mos.lib">
+              </label>
+              <label>USER_STA_FILE
+                <input id="staFile" value="./user_data/demo_core.sta">
+              </label>
+              <label>GSC_FILE
+                <input id="gscFile" value="./user_data/demo_core.gsc">
+              </label>
+              <label>DYNAMIC_SIMULATION_TIME
+                <input id="simTime" value="2e-9">
+              </label>
+              <label>DYNAMIC_TIME_STEP
+                <input id="timeStep" value="5e-12">
+              </label>
+            </div>
+
+            <div class="field-group">
+              <h4>Package 简模</h4>
+              <label>PAD R / C
+                <input id="padRc" value="0.0, 0.0">
+              </label>
+              <label>WIREBOND R / C / L
+                <input id="wbRcl" value="0.002, 30.0, 250.0">
+              </label>
+              <label>PACKAGE R / C / L
+                <input id="pkgRcl" value="0.0016, 5.0, 25.0">
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div class="template-tabs">
+              <button class="template-tab active" data-target="tpl-aplmmx">APLMMX</button>
+              <button class="template-tab" data-target="tpl-gds2db">GDS2DB</button>
+              <button class="template-tab" data-target="tpl-static-gsr">Static GSR</button>
+              <button class="template-tab" data-target="tpl-static-tcl">Static TCL</button>
+              <button class="template-tab" data-target="tpl-dynamic-gsr">Dynamic GSR</button>
+              <button class="template-tab" data-target="tpl-dynamic-tcl">Dynamic TCL</button>
+              <button class="template-tab" data-target="tpl-sigem">Signal EM</button>
+            </div>
+
+            <div id="tpl-aplmmx" class="template-panel active">
+              <h3>动态/通用 `aplmmx.config` 骨架</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>aplmmx.config</span>
+                  <button class="copy-btn" data-copy="out-aplmmx">复制</button>
+                </div>
+                <pre id="out-aplmmx"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-gds2db" class="template-panel">
+              <h3>`gds2db.config` 骨架</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>gds2db.config</span>
+                  <button class="copy-btn" data-copy="out-gds2db">复制</button>
+                </div>
+                <pre id="out-gds2db"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-static-gsr" class="template-panel">
+              <h3>Static IREM GSR</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>static.gsr</span>
+                  <button class="copy-btn" data-copy="out-static-gsr">复制</button>
+                </div>
+                <pre id="out-static-gsr"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-static-tcl" class="template-panel">
+              <h3>Static IREM TCL</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>static.tcl</span>
+                  <button class="copy-btn" data-copy="out-static-tcl">复制</button>
+                </div>
+                <pre id="out-static-tcl"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-dynamic-gsr" class="template-panel">
+              <h3>Dynamic IREM GSR</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>dynamic.gsr</span>
+                  <button class="copy-btn" data-copy="out-dynamic-gsr">复制</button>
+                </div>
+                <pre id="out-dynamic-gsr"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-dynamic-tcl" class="template-panel">
+              <h3>Dynamic IREM TCL</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>dynamic.tcl</span>
+                  <button class="copy-btn" data-copy="out-dynamic-tcl">复制</button>
+                </div>
+                <pre id="out-dynamic-tcl"></pre>
+              </div>
+            </div>
+
+            <div id="tpl-sigem" class="template-panel">
+              <h3>Transistor-level Signal EM 起步模板</h3>
+              <div class="codebox">
+                <div class="code-head">
+                  <span>signal_em.aplmmx.config + cmd_signalEM.tcl</span>
+                  <button class="copy-btn" data-copy="out-sigem">复制</button>
+                </div>
+                <pre id="out-sigem"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">模板里我保留了手册示例的命令节奏，但真实项目通常还会补上更多工艺/开关/层次/调试关键字，例如 `PROBE_MAP`、`AUTO_SPICE_FINGER_SUPPORT`、`USE_TOP_LEVEL_TEXT_ONLY`、`EM_TECH_PEAK` 等。</div>
+      </section>
+
+      <section id="recipes" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>命令执行配方</h2>
+          </div>
+          <p>如果你只想快速记住“先跑什么、后跑什么”，可以直接看这三套配方。它们和前面的模板是一一对应的。</p>
+        </div>
+        <div class="recipe-grid">
+          <div class="recipe">
+            <h3>配方 A：静态 IREM</h3>
+            <p>适合早期网格评估、平均压降、Block 或 Region 功耗分配。</p>
+            <ol>
+              <li>准备 `gds2db.config` 和 `static.gsr`。</li>
+              <li>在 Totem 中导入 GSR，建立设计数据库。</li>
+              <li>跑 `pwrcalc` 得到功耗分布。</li>
+              <li>跑 `perform extraction -power -ground`。</li>
+              <li>跑 `perform gridcheck` 快速找弱网。</li>
+              <li>最后 `perform analysis -static`。</li>
+            </ol>
+            <div class="codebox">
+              <div class="code-head">
+                <span>手册命令骨架</span>
+              </div>
+              <pre>import gsr user_data/RAM256.gsr
+setup design
+perform pwrcalc
+perform extraction -power -ground
+perform gridcheck
+perform analysis -static
+totem2 -f static.tcl</pre>
+            </div>
+          </div>
+
+          <div class="recipe">
+            <h3>配方 B：动态 IREM</h3>
+            <p>适合真实向量/状态驱动的 DvD、电源噪声和动态 EM。</p>
+            <ol>
+              <li>写 `aplmmx.config`，先 `aplmmx -s` 生成 probe。</li>
+              <li>把 probe 放进 testbench 跑 Spice。</li>
+              <li>`aplmmx -n` 生成 `spcurrent/cdev`。</li>
+              <li>准备 `dynamic.gsr`，导入 `APL_FILES`、`USER_STA_FILE`、`GSC_FILE`。</li>
+              <li>设置 pad/wirebond/package RLC。</li>
+              <li>`perform analysis -vcd`。</li>
+            </ol>
+            <div class="codebox">
+              <div class="code-head">
+                <span>手册命令骨架</span>
+              </div>
+              <pre>aplmmx -s aplmmx.config
+# run spice with &lt;cell&gt;.aplmmx included
+aplmmx -n aplmmx.config
+totem -f dynamic.tcl</pre>
+            </div>
+          </div>
+
+          <div class="recipe">
+            <h3>配方 C：Signal EM</h3>
+            <p>适合把动态驱动电流投影到信号网上看 Iavg / Irms / Ipeak 的 EM 风险。</p>
+            <ol>
+              <li>准备信号 RC DSPF、GDS、map、testbench、波形输出路径。</li>
+              <li>`aplmmx -sig -s` 生成 signal probe。</li>
+              <li>运行 Spice，回灌 `SIM_OUTPUT_FILE`。</li>
+              <li>`aplmmx -sig -n` 生成 signal EM 模型。</li>
+              <li>`setup analysis_mode signalEM` 后执行 `perform analysis -signalEM`。</li>
+            </ol>
+            <div class="codebox">
+              <div class="code-head">
+                <span>手册命令骨架</span>
+              </div>
+              <pre>aplmmx -sig -s signal_em.aplmmx.config
+# run third-party spice
+aplmmx -sig -n signal_em.aplmmx.config
+totem2 -f cmd_signalEM.tcl</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gallery" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>手册图示对照</h2>
+          </div>
+          <p>这些截图直接来自附加 PDF，作用是让你把上面的流程说明和手册原图对应起来。</p>
+        </div>
+        <div class="gallery-grid">
+          <article class="gallery-card">
+            <a href="assets/manual_figures/char_page69.png" target="_blank" rel="noreferrer">
+              <img src="assets/manual_figures/char_page69.png" alt="Integrated GSR flow">
+            </a>
+            <h3>Integrated GSR flow (TSR)</h3>
+            <p>这一页最适合用来理解：为什么可以把 APLMMX、GDS2DB、第三方 Spice 和最终 Totem 仿真串成一条链。</p>
+            <small>手册：Chapter 3, Figure 3-2, p.69</small>
+          </article>
+
+          <article class="gallery-card">
+            <a href="assets/manual_figures/static_page188.png" target="_blank" rel="noreferrer">
+              <img src="assets/manual_figures/static_page188.png" alt="Static power assignment methods">
+            </a>
+            <h3>静态功耗分配的三种基本方式</h3>
+            <p>这张图帮助你记住静态 IREM 不止一种功耗注入方式：flat、region-based、hierarchy-based。</p>
+            <small>手册：Chapter 4, Figure 4-1, p.188</small>
+          </article>
+
+          <article class="gallery-card">
+            <a href="assets/manual_figures/package_page275.png" target="_blank" rel="noreferrer">
+              <img src="assets/manual_figures/package_page275.png" alt="Package parameters modeling in Totem">
+            </a>
+            <h3>Package port 与 die pad 的连接关系</h3>
+            <p>这张图把 `REDHAWK_PKG` 子电路端口、PLOC 里的 die pad 名，以及外部供电源之间的关系画得最清楚。</p>
+            <small>手册：Chapter 7, Figure 7-3, p.275</small>
+          </article>
+
+          <article class="gallery-card">
+            <a href="assets/manual_figures/signal_page367.png" target="_blank" rel="noreferrer">
+              <img src="assets/manual_figures/signal_page367.png" alt="Signal EM methodology">
+            </a>
+            <h3>Signal EM 三步预表征</h3>
+            <p>这是理解 `aplmmx -sig -s → spice → aplmmx -sig -n` 最直接的一页，建议和本页 Node 10 一起看。</p>
+            <small>手册：Chapter 11, p.367</small>
+          </article>
+        </div>
+      </section>
+
+      <div class="footer">
+        本页整理依据：`eetopcn_Totem.pdf` 中 Characterization and Modeling（p.63-187）、Static and Dynamic Analysis（p.188-214）、Package and Board Modeling（p.271-282）、Signal EM Analysis（p.366-390）。如果你后续需要，我可以在这个页面上继续加“逐关键字解释模式”或“根据项目路径自动生成配置文件导出按钮”。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll(".template-tab");
+    const panels = document.querySelectorAll(".template-panel");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((item) => item.classList.remove("active"));
+        panels.forEach((item) => item.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.target).classList.add("active");
+      });
+    });
+
+    function value(id, fallback = "") {
+      const element = document.getElementById(id);
+      if (!element) return fallback;
+      const text = element.value.trim();
+      return text || fallback;
+    }
+
+    function triple(source, fallback) {
+      const raw = value(source, fallback);
+      return raw.split(",").map((item) => item.trim());
+    }
+
+    function renderTemplates() {
+      const design = value("designName", "demo_core");
+      const topCell = value("topCell", design);
+      const topX = value("topXcell", "Xtop");
+      const vdd = value("vddPin", "VDD");
+      const gnd = value("gndPin", "VSS");
+      const volt = value("vddVolt", "1.1");
+      const freq = value("freq", "500e6");
+      const spiceNetlist = value("spiceNetlist", "./user_data/demo_core.sp");
+      const layoutNetlist = value("layoutNetlist", "./user_data/demo_core_layout.sp");
+      const dspfNetlist = value("dspfNetlist", "./user_data/demo_core.dspf");
+      const dspfMap = value("dspfMap", "./user_data/demo_core.dspf.map");
+      const simOutput = value("simOutput", "./user_data/top.fsdb");
+      const gdsFile = value("gdsFile", "./user_data/demo_core.gds");
+      const gdsMapFile = value("gdsMapFile", "./user_data/gds_layer.map");
+      const techFile = value("techFile", "./user_data/demo_core.tech");
+      const plocFile = value("plocFile", "./user_data/demo_core.ploc");
+      const testbench = value("testbench", "./user_data/dut.sp");
+      const modelLib = value("modelLib", "./user_data/mos.lib");
+      const staFile = value("staFile", "./user_data/demo_core.sta");
+      const gscFile = value("gscFile", "./user_data/demo_core.gsc");
+      const simTime = value("simTime", "2e-9");
+      const timeStep = value("timeStep", "5e-12");
+      const [padR, padC] = triple("padRc", "0.0, 0.0");
+      const [wbR, wbC, wbL] = triple("wbRcl", "0.002, 30.0, 250.0");
+      const [pkgR, pkgC, pkgL] = triple("pkgRcl", "0.0016, 5.0, 25.0");
+
+      document.getElementById("out-aplmmx").textContent = `TOP_CELL ${topCell}
+TOP_XCELL_NAME ${topX}
+SPICE_NETLIST ${spiceNetlist}
+LAYOUT_NETLIST ${layoutNetlist}
+DSPF_NETLIST ${dspfNetlist}
+DEVICE_MODEL_LIBRARY ${modelLib} TT
+VDD_PIN_NAME ${vdd}
+GND_PIN_NAME ${gnd}
+VDD ${volt}
+SPICE_SIMULATOR hsim
+TEST_BENCH_FILE ${testbench}
+SIM_OUTPUT_FILE ${simOutput}
+AUTO_SPICE_FINGER_SUPPORT 1
+PROBE_NO_PAR 1
+GDS_FILE ${gdsFile}
+GDS_MAP_FILE ${gdsMapFile}
+GDS_OPTION {
+  USE_TOP_LEVEL_TEXT_ONLY 1
+  SNAP_THRESHOLD_DISTANCE 0.09
+}`;
+
+      document.getElementById("out-gds2db").textContent = `TOP_CELLS {
+  ${topCell}
+}
+GDS_FILE ${gdsFile}
+GDS_MAP_FILE ${gdsMapFile}
+VDD_NETS {
+  ${vdd}
+}
+GND_NETS {
+  ${gnd}
+}
+USE_TOP_LEVEL_TEXT_ONLY 1
+CHECK_TRACING 1`;
+
+      document.getElementById("out-static-gsr").textContent = `TECH_FILE ${techFile}
+PAD_FILES {
+  ${plocFile}
+}
+GDSII_FILE {
+  ${design} gds2db.config full top
+}
+VDD_NETS {
+  ${vdd} ${volt}
+}
+GND_NETS {
+  ${gnd} 0
+}
+BLOCK_POWER_FOR_SCALING {
+  FULLCHIP ${design} 1.2 ${vdd}
+  FULLCHIP ${design} 0.9 ${gnd}
+}
+FREQ ${freq}`;
+
+      document.getElementById("out-static-tcl").textContent = `import gsr ${design}_static.gsr
+setup design
+perform pwrcalc
+perform extraction -power -ground
+perform gridcheck
+perform analysis -static
+
+# manual run command
+totem2 -f static.tcl`;
+
+      document.getElementById("out-dynamic-gsr").textContent = `TECH_FILE ${techFile}
+PAD_FILES {
+  ${plocFile}
+}
+APL_FILES {
+  ./APLMMX/${design}.spcurrent current
+  ./APLMMX/${design}.cdev cdev
+}
+GDS_CELLS {
+  ${design} ./GDS2DB mmx
+}
+USER_STA_FILE ${staFile}
+GSC_FILE ${gscFile}
+VDD_NETS {
+  ${vdd} ${volt}
+}
+GND_NETS {
+  ${gnd} 0
+}
+BLOCK_POWER_FOR_SCALING {
+  FULLCHIP ${design} 1.2 ${vdd}
+  FULLCHIP ${design} 0.9 ${gnd}
+}
+FREQ ${freq}
+DYNAMIC_SIMULATION_TIME ${simTime}
+DYNAMIC_TIME_STEP ${timeStep}`;
+
+      document.getElementById("out-dynamic-tcl").textContent = `import gsr ${design}_dynamic.gsr
+setup design
+perform pwrcalc
+perform extraction -power -ground
+setup pad -power -r ${padR} -c ${padC} -ground -r ${padR} -c ${padC}
+setup wirebond -power -r ${wbR} -c ${wbC} -l ${wbL} -ground -r ${wbR} -c ${wbC} -l ${wbL}
+setup package -r ${pkgR} -c ${pkgC} -l ${pkgL}
+perform gridcheck
+perform analysis -vcd
+
+# manual run command
+totem -f dynamic.tcl`;
+
+      document.getElementById("out-sigem").textContent = `# signal_em.aplmmx.config
+EMPRO_MODE dynamic
+TOP_CELL ${topCell}
+TOP_XCELL_NAME ${topX}
+VDD_PIN_NAME ${vdd}
+GND_PIN_NAME ${gnd}
+VDD ${volt}
+PROBE_NO_PAR 1
+TEST_BENCH_FILE ${testbench}
+SPICE_NETLIST ${spiceNetlist}
+DSPF_NETLIST ${dspfNetlist}
+DSPF_MAP ${dspfMap}
+SIM_OUTPUT_FILE ${simOutput}
+DEVICE_MODEL_LIBRARY ${modelLib} TT
+SPICE_SIMULATOR hsim
+GDS_FILE ${gdsFile}
+GDS_MAP_FILE ${gdsMapFile}
+GSR_IN_FILE ./${design}_sigem.gsr
+
+# cmd_signalEM.tcl
+setup analysis_mode signalEM
+import gsr ${design}_sigem.gsr
+setup design
+import gsc ${gscFile}
+perform analysis -signalEM -transient
+
+# third-party probe-based flow
+aplmmx -sig -s signal_em.aplmmx.config
+aplmmx -sig -n signal_em.aplmmx.config
+totem2 -f cmd_signalEM.tcl`;
+    }
+
+    document.querySelectorAll("input").forEach((input) => {
+      input.addEventListener("input", renderTemplates);
+    });
+
+    document.querySelectorAll(".copy-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.copy);
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.textContent);
+          const original = button.textContent;
+          button.textContent = "已复制";
+          setTimeout(() => {
+            button.textContent = original;
+          }, 1200);
+        } catch (error) {
+          button.textContent = "复制失败";
+          setTimeout(() => {
+            button.textContent = "复制";
+          }, 1200);
+        }
+      });
+    });
+
+    renderTemplates();
+  </script>
+</body>
+</html>
